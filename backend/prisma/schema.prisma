@@ -1,0 +1,812 @@
+// RentNook database schema.
+// Conventions: UUID ids, money in paise (Int), timestamps in UTC.
+// Business rules live in src/modules; this file only describes shape and
+// the constraints the database itself must guarantee (uniques, FKs).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- users
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum Language {
+  en
+  hi
+}
+
+model User {
+  id             String     @id @default(uuid()) @db.Uuid
+  phone          String     @unique // E.164; replaced with a tombstone on deletion
+  name           String?
+  cityId         String?    @db.Uuid
+  city           City?      @relation(fields: [cityId], references: [id])
+  isLister       Boolean    @default(false)
+  status         UserStatus @default(ACTIVE)
+  blockReason    String?
+  language       Language   @default(en)
+  referralCode   String     @unique
+  referredById   String?    @db.Uuid
+  referredBy     User?      @relation("Referrals", fields: [referredById], references: [id])
+  referees       User[]     @relation("Referrals")
+  idVerified     Boolean    @default(false)
+  // Referral reward days earned while the user had no active plan; added
+  // to the next plan that starts.
+  rewardDaysBank Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  lastSeenAt     DateTime?
+
+  sessions        Session[]
+  deviceTokens    DeviceToken[]
+  consents        ConsentLog[]
+  listings        Listing[]
+  favorites       Favorite[]
+  blocksMade      Block[]          @relation("Blocker")
+  blocksReceived  Block[]          @relation("Blocked")
+  reportsMade     Report[]         @relation("Reporter")
+  reportsReceived Report[]         @relation("ReportedUser")
+  subscriptions   Subscription[]
+  payments        Payment[]
+  notifications   Notification[]
+  itemRequests    ItemRequest[]
+  waitlists       CityWaitlist[]
+  couponUses      CouponUse[]
+  referralGiven   Referral[]       @relation("Referrer")
+  referralTaken   Referral?        @relation("Referee")
+  shop            ShopProfile?
+  idVerifications IdVerification[]
+  uploads         Upload[]
+  deletion        DeletionRequest?
+  contactsMade    ContactEvent[]   @relation("ContactSeeker")
+  contactsGot     ContactEvent[]   @relation("ContactOwner")
+
+  @@index([cityId])
+  @@index([status])
+}
+
+model Session {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @db.Uuid
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Every refresh rotates the token; the family id ties rotations together
+  // so a replayed old token can revoke the whole chain.
+  familyId         String    @db.Uuid
+  refreshTokenHash String    @unique
+  deviceId         String?
+  appVersion       String?
+  createdAt        DateTime  @default(now())
+  lastUsedAt       DateTime  @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  replacedById     String?   @db.Uuid
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fcmToken  String   @unique
+  platform  String
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ConsentLog {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noticeVersion String
+  acceptedAt    DateTime  @default(now())
+  withdrawnAt   DateTime?
+  ip            String?
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------- places
+
+model City {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  nameHi    String?
+  state     String
+  slug      String    @unique
+  isOpen    Boolean   @default(false)
+  lat       Float
+  lng       Float
+  openedAt  DateTime?
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  areas    Area[]
+  users    User[]
+  listings Listing[]
+  waitlist CityWaitlist[]
+  requests ItemRequest[]
+  boosts   Boost[]
+
+  @@unique([name, state])
+}
+
+model Area {
+  id        String   @id @default(uuid()) @db.Uuid
+  cityId    String   @db.Uuid
+  city      City     @relation(fields: [cityId], references: [id])
+  name      String
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+
+  listings Listing[]
+  shops    ShopProfile[]
+
+  @@unique([cityId, name])
+}
+
+model CityWaitlist {
+  cityId     String    @db.Uuid
+  city       City      @relation(fields: [cityId], references: [id])
+  userId     String    @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime?
+
+  @@id([cityId, userId])
+}
+
+model Category {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  nameHi       String
+  icon         String
+  sortOrder    Int      @unique
+  isActive     Boolean  @default(true)
+  // Extra per-category fields, e.g. [{key:"fuel",label:"Fuel",type:"select",options:[...]}].
+  // Pure data: rendered by the app, validated by the server. Never executed.
+  fieldsSchema Json     @default("[]")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  listings Listing[]
+  requests ItemRequest[]
+}
+
+// ---------------------------------------------------------------- plans and money
+
+enum PlanType {
+  PAID
+  FREE
+  TRIAL
+  BUSINESS
+}
+
+enum PlanVisibility {
+  PUBLIC
+  HIDDEN
+  ARCHIVED
+}
+
+model Plan {
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String
+  nameHi        String
+  type          PlanType
+  pricePaise    Int
+  durationDays  Int
+  listingLimit  Int? // null = unlimited
+  boostCredits  Int            @default(0)
+  shopPage      Boolean        @default(false)
+  maxPerUser    Int? // null = unlimited
+  needsApproval Boolean        @default(false)
+  visibility    PlanVisibility @default(PUBLIC)
+  allCities     Boolean        @default(true)
+  cityIds       String[]       @db.Uuid
+  validFrom     DateTime?
+  validTo       DateTime?
+  badge         String?
+  badgeHi       String?
+  sortOrder     Int            @default(0)
+  points        String[]
+  pointsHi      String[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subscriptions Subscription[]
+}
+
+enum SubscriptionStatus {
+  PENDING // waiting for payment check or admin approval
+  SCHEDULED // paid/approved, starts when the current plan ends
+  ACTIVE
+  EXPIRING // active, inside the last 7 days
+  EXPIRED
+  REJECTED
+  CANCELLED
+}
+
+model Subscription {
+  id                  String             @id @default(uuid()) @db.Uuid
+  userId              String             @db.Uuid
+  user                User               @relation(fields: [userId], references: [id])
+  planId              String             @db.Uuid
+  plan                Plan               @relation(fields: [planId], references: [id])
+  status              SubscriptionStatus @default(PENDING)
+  // Snapshot of the plan at purchase time. Later plan edits never touch these.
+  planName            String
+  planNameHi          String
+  planType            PlanType
+  pricePaise          Int
+  durationDays        Int
+  listingLimit        Int?
+  boostCredits        Int
+  shopPage            Boolean
+  // ---
+  startsAt            DateTime?
+  endsAt              DateTime?
+  pausedAt            DateTime? // city closed
+  remindersSent       Int[]              @default([])
+  boostCreditsLeft    Int                @default(0)
+  boostCreditsResetAt DateTime?
+  deviceId            String?
+  source              String             @default("app") // app | admin | referral
+  assignedById        String?            @db.Uuid
+  assignReason        String?
+  cancelReason        String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  payment Payment?
+
+  @@index([userId, status])
+  @@index([status, endsAt])
+  @@index([planId, deviceId])
+}
+
+enum PaymentPurpose {
+  PLAN
+  BOOST
+}
+
+enum PaymentStatus {
+  CREATED // waiting for UTR
+  PENDING // UTR submitted, waiting for admin
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Payment {
+  id                    String         @id @default(uuid()) @db.Uuid
+  shortRef              String         @unique // goes into the UPI note, e.g. RN-7K3QX9
+  userId                String         @db.Uuid
+  user                  User           @relation(fields: [userId], references: [id])
+  purpose               PaymentPurpose
+  refId                 String         @db.Uuid // subscription id or boost id
+  subscriptionId        String?        @unique @db.Uuid
+  subscription          Subscription?  @relation(fields: [subscriptionId], references: [id])
+  boostId               String?        @unique @db.Uuid
+  boost                 Boost?         @relation(fields: [boostId], references: [id])
+  listPricePaise        Int
+  discountPaise         Int            @default(0)
+  amountPaise           Int
+  utr                   String?        @unique
+  screenshotKey         String?
+  status                PaymentStatus  @default(CREATED)
+  submittedAt           DateTime?
+  submitCount           Int            @default(0)
+  reviewedById          String?        @db.Uuid
+  reviewedAt            DateTime?
+  rejectReason          String?
+  couponId              String?        @db.Uuid
+  coupon                Coupon?        @relation(fields: [couponId], references: [id])
+  screenshotDeleteAfter DateTime?
+  anonymised            Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  couponUse CouponUse?
+
+  @@index([status, submittedAt])
+  @@index([userId, status])
+}
+
+// Rejected UTRs are kept here so the same number cannot be recycled
+// after an admin clears it from the payment row.
+model UtrAttempt {
+  utr       String   @id
+  paymentId String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+}
+
+enum BoostStatus {
+  AWAITING_PAYMENT
+  QUEUED
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+model Boost {
+  id        String      @id @default(uuid()) @db.Uuid
+  listingId String      @db.Uuid
+  listing   Listing     @relation(fields: [listingId], references: [id])
+  cityId    String      @db.Uuid
+  city      City        @relation(fields: [cityId], references: [id])
+  userId    String      @db.Uuid
+  days      Int
+  status    BoostStatus @default(AWAITING_PAYMENT)
+  viaCredit Boolean     @default(false)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime    @default(now())
+
+  payment Payment?
+
+  @@index([cityId, status])
+}
+
+enum CouponType {
+  PERCENT
+  FLAT
+}
+
+model Coupon {
+  id           String     @id @default(uuid()) @db.Uuid
+  code         String     @unique
+  type         CouponType
+  value        Int // percent (1-100) or paise
+  validFrom    DateTime
+  validTo      DateTime
+  maxUses      Int?
+  usedCount    Int        @default(0)
+  perUserLimit Int        @default(1)
+  cityId       String?    @db.Uuid
+  planIds      String[]   @db.Uuid
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  uses     CouponUse[]
+  payments Payment[]
+}
+
+model CouponUse {
+  id        String   @id @default(uuid()) @db.Uuid
+  couponId  String   @db.Uuid
+  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  paymentId String   @unique @db.Uuid
+  payment   Payment  @relation(fields: [paymentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([couponId, paymentId])
+  @@index([couponId, userId])
+}
+
+enum ReferralStatus {
+  PENDING
+  REWARDED
+  CAPPED
+  VOID
+}
+
+model Referral {
+  id         String         @id @default(uuid()) @db.Uuid
+  referrerId String         @db.Uuid
+  referrer   User           @relation("Referrer", fields: [referrerId], references: [id])
+  refereeId  String         @unique @db.Uuid
+  referee    User           @relation("Referee", fields: [refereeId], references: [id])
+  deviceId   String?
+  rewardDays Int
+  status     ReferralStatus @default(PENDING)
+  rewardedAt DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@index([referrerId, status])
+}
+
+// ---------------------------------------------------------------- listings
+
+enum ListingStatus {
+  DRAFT
+  REVIEW
+  LIVE
+  RENTED_OUT
+  HIDDEN
+  REMOVED
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+model Listing {
+  id              String        @id @default(uuid()) @db.Uuid
+  shortId         String        @unique // used in share links, not guessable
+  userId          String        @db.Uuid
+  user            User          @relation(fields: [userId], references: [id])
+  cityId          String        @db.Uuid
+  city            City          @relation(fields: [cityId], references: [id])
+  areaId          String        @db.Uuid
+  area            Area          @relation(fields: [areaId], references: [id])
+  categoryId      String        @db.Uuid
+  category        Category      @relation(fields: [categoryId], references: [id])
+  title           String
+  description     String
+  rentDayPaise    Int?
+  rentWeekPaise   Int?
+  rentMonthPaise  Int?
+  minRentPaise    Int // cheapest of the three, kept for sorting
+  depositPaise    Int?
+  condition       ItemCondition
+  extra           Json          @default("{}")
+  whatsappPhone   String? // E.164; null = use account phone
+  status          ListingStatus @default(DRAFT)
+  hiddenReason    String? // PLAN_ENDED | CITY_CLOSED | REPORTS | BLOCKED | ADMIN | PAUSED | DELETION
+  rejectReason    String?
+  approxLat       Float
+  approxLng       Float
+  featuredUntil   DateTime?
+  viewCount       Int           @default(0)
+  waClickCount    Int           @default(0)
+  reportCount     Int           @default(0)
+  moderationFlags String[]      @default([])
+  publishedAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  images    ListingImage[]
+  favorites Favorite[]
+  reports   Report[]
+  boosts    Boost[]
+  contacts  ContactEvent[]
+
+  @@index([cityId, status, publishedAt])
+  @@index([userId, status])
+  @@index([categoryId])
+}
+
+model ListingImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  listingId  String   @db.Uuid
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  storageKey String   @unique
+  width      Int
+  height     Int
+  sortOrder  Int
+  hash       String // sha256 of the re-encoded file
+  dhash      String // perceptual hash for duplicate-photo checks
+  createdAt  DateTime @default(now())
+
+  @@index([dhash])
+}
+
+enum UploadPurpose {
+  listing
+  proof
+  id
+  logo
+}
+
+enum UploadStatus {
+  SIGNED
+  READY
+  REJECTED
+  ATTACHED
+}
+
+// Every upload is tied to the user who asked for the signed URL, so a
+// client can never attach somebody else's file to its listing or payment.
+model Upload {
+  id         String        @id @default(uuid()) @db.Uuid
+  userId     String        @db.Uuid
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose    UploadPurpose
+  rawKey     String        @unique
+  finalKey   String?       @unique
+  status     UploadStatus  @default(SIGNED)
+  width      Int?
+  height     Int?
+  hash       String?
+  dhash      String?
+  rejectCode String?
+  expiresAt  DateTime
+  createdAt  DateTime      @default(now())
+
+  @@index([userId, status])
+}
+
+model Favorite {
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String   @db.Uuid
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+}
+
+model Block {
+  blockerId String   @db.Uuid
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String   @db.Uuid
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+enum ReportReason {
+  FAKE_ITEM
+  ADVANCE_PAYMENT
+  WRONG_PRICE
+  OFFENSIVE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+model Report {
+  id          String       @id @default(uuid()) @db.Uuid
+  reporterId  String       @db.Uuid
+  reporter    User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  listingId   String?      @db.Uuid
+  listing     Listing?     @relation(fields: [listingId], references: [id])
+  userId      String?      @db.Uuid
+  user        User?        @relation("ReportedUser", fields: [userId], references: [id])
+  // listing:<id> or user:<id>; keeps "one report per reporter per target" a DB rule.
+  targetKey   String
+  reason      ReportReason
+  note        String?
+  status      ReportStatus @default(OPEN)
+  actionNote  String?
+  handledById String?      @db.Uuid
+  handledAt   DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@unique([reporterId, targetKey])
+  @@index([status, createdAt])
+}
+
+// One row per seeker, owner and IST day. Used for the daily contact limit
+// and the owner's "WhatsApp chats" number.
+model ContactEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  seekerId  String   @db.Uuid
+  seeker    User     @relation("ContactSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
+  ownerId   String   @db.Uuid
+  owner     User     @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  listingId String   @db.Uuid
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  day       String // YYYY-MM-DD in IST
+  createdAt DateTime @default(now())
+
+  @@unique([seekerId, ownerId, day])
+  @@index([seekerId, day])
+}
+
+enum ItemRequestStatus {
+  OPEN
+  CLOSED
+}
+
+model ItemRequest {
+  id            String            @id @default(uuid()) @db.Uuid
+  userId        String            @db.Uuid
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cityId        String            @db.Uuid
+  city          City              @relation(fields: [cityId], references: [id])
+  categoryId    String            @db.Uuid
+  category      Category          @relation(fields: [categoryId], references: [id])
+  text          String
+  fromDate      DateTime          @db.Date
+  toDate        DateTime          @db.Date
+  status        ItemRequestStatus @default(OPEN)
+  notifiedCount Int               @default(0)
+  createdAt     DateTime          @default(now())
+
+  @@index([status, toDate])
+  @@index([userId, createdAt])
+}
+
+// ---------------------------------------------------------------- engagement and trust
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  data      Json      @default("{}")
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model ShopProfile {
+  id        String   @id @default(uuid()) @db.Uuid
+  shortId   String   @unique
+  userId    String   @unique @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopName  String
+  logoKey   String?
+  areaId    String   @db.Uuid
+  area      Area     @relation(fields: [areaId], references: [id])
+  timings   String
+  about     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum IdVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model IdVerification {
+  id           String               @id @default(uuid()) @db.Uuid
+  userId       String               @db.Uuid
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  docKey       String?
+  status       IdVerificationStatus @default(PENDING)
+  rejectReason String?
+  reviewedById String?              @db.Uuid
+  decidedAt    DateTime?
+  deleteAfter  DateTime?
+  docDeletedAt DateTime?
+  createdAt    DateTime             @default(now())
+
+  @@index([status, createdAt])
+}
+
+model DeletionRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @db.Uuid
+  user        User      @relation(fields: [userId], references: [id])
+  source      String // app | web
+  reason      String?
+  requestedAt DateTime  @default(now())
+  dueAt       DateTime
+  completedAt DateTime?
+}
+
+model SearchLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  cityId      String?  @db.Uuid
+  query       String?
+  categoryId  String?  @db.Uuid
+  resultCount Int
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Setting {
+  key         String   @id
+  value       Json
+  updatedById String?  @db.Uuid
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------- staff
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
+// Staff accounts are kept apart from app users on purpose: a phone OTP
+// can never turn into admin access, and admin logins never touch Firebase.
+model Admin {
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String    @unique
+  name           String
+  role           AdminRole @default(ADMIN)
+  passwordHash   String?
+  totpSecretEnc  String?
+  totpEnabled    Boolean   @default(false)
+  backupCodes    String[]  @default([]) // argon2 hashes, removed when used
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  disabledAt     DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sessions AdminSession[]
+  invites  AdminInvite[]  @relation("InvitedBy")
+}
+
+model AdminSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  tokenHash  String    @unique
+  adminId    String    @db.Uuid
+  admin      Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  csrfToken  String
+  // false until the TOTP step is done; a half-logged-in session can only
+  // call the 2fa / totp-setup endpoints.
+  mfaPassed  Boolean   @default(false)
+  stepUpAt   DateTime?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  @@index([adminId])
+}
+
+model AdminInvite {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String
+  name        String
+  role        AdminRole
+  tokenHash   String    @unique
+  invitedById String    @db.Uuid
+  invitedBy   Admin     @relation("InvitedBy", fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  actorId   String?  @db.Uuid // admin id, or null for system jobs
+  actorType String   @default("admin") // admin | system | user
+  action    String
+  entity    String
+  entityId  String?
+  before    Json?
+  after     Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model Broadcast {
+  id          String    @id @default(uuid()) @db.Uuid
+  audience    String // all | city | listers
+  cityId      String?   @db.Uuid
+  title       String
+  body        String
+  sentById    String    @db.Uuid
+  targetCount Int       @default(0)
+  sentCount   Int       @default(0)
+  status      String    @default("QUEUED")
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+}
