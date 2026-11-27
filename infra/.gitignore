@@ -1,0 +1,4 @@
+secrets/
+.env
+api.env
+caddy/extra/

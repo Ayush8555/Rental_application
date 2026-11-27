@@ -1,0 +1,7 @@
+# Every change needs a review from the tech lead. Money and auth code also
+# need the owner's sign-off before production.
+*                                   @ayush8555
+/backend/src/modules/billing.ts     @ayush8555
+/backend/src/modules/admin/         @ayush8555
+/backend/prisma/                    @ayush8555
+/infra/                             @ayush8555

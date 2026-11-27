@@ -1,0 +1,20 @@
+# Monthly, one PR per ecosystem (section 3: upgrade once a month, separately).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule: { interval: monthly }
+    groups: { backend: { patterns: ["*"] } }
+  - package-ecosystem: npm
+    directory: /admin
+    schedule: { interval: monthly }
+    groups: { admin: { patterns: ["*"] } }
+  - package-ecosystem: pub
+    directory: /app
+    schedule: { interval: monthly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: docker
+    directory: /backend
+    schedule: { interval: monthly }

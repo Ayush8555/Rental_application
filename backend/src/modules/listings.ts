@@ -539,7 +539,8 @@ export default async function listingRoutes(app: FastifyInstance, deps: Deps) {
     // Insights log (no user id, ever). First page only so paging does not inflate numbers.
     if (offset === 0 && (text || q.category)) {
       await deps.db.searchLog
-        .create({ data: { cityId: city.id, query: text?.toLowerCase() ?? null, categoryId: q.category ?? null, resultCount: total } })
+        // Digit runs are dropped so a number typed into search never lands in insights.
+        .create({ data: { cityId: city.id, query: text?.toLowerCase().replace(/\d{5,}/g, '#').slice(0, 60) ?? null, categoryId: q.category ?? null, resultCount: total } })
         .catch(() => undefined);
     }
     return { items, total, nextCursor: ids.length > take ? encodeCursor(offset + take) : null };

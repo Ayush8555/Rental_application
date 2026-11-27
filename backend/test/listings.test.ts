@@ -190,6 +190,9 @@ describe('search', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]!.resultCount).toBe(0);
     expect(JSON.stringify(rows[0])).not.toContain(s.userId);
+    await ctx.http().get('/listings').set(s.auth).query({ city: base.city.id, q: 'call 9876543210' });
+    const logged = await ctx.deps.db.searchLog.findMany();
+    expect(logged.map((r) => r.query).join()).not.toContain('9876543210');
   });
 
   it('counts a view once per viewer per day', async () => {
