@@ -1,0 +1,417 @@
+{
+  "@@locale": "en",
+  "appName": "RentNook",
+  "tagline": "Rent anything, near you",
+  "benefitFind": "Find cameras, tools and more from people in your area",
+  "benefitChat": "Talk to the owner directly on WhatsApp",
+  "benefitEarn": "Put your unused things on rent and earn",
+  "continueWithMobile": "Continue with mobile number",
+  "justBrowse": "Just browse",
+  "offlineBanner": "No internet — showing saved items",
+  "retry": "Try again",
+  "updateTitle": "Please update RentNook",
+  "updateBody": "This version is too old to keep working. The update takes a minute.",
+  "updateButton": "Update on Play Store",
+  "enterMobileTitle": "Enter your mobile number",
+  "mobileHint": "10-digit mobile number",
+  "ageConsentPrefix": "I am 18+ and agree to the ",
+  "terms": "Terms",
+  "and": " and ",
+  "privacyPolicy": "Privacy Policy",
+  "ageConsentSuffix": "",
+  "sendOtp": "Send OTP",
+  "numberNeverShown": "Your number is never shown publicly",
+  "invalidMobile": "Enter a valid 10-digit mobile number",
+  "tooManyAttempts": "Please try again after 10 minutes",
+  "networkError": "Could not connect. Check your internet and try again.",
+  "otpTitle": "Enter the 6-digit code",
+  "otpSentTo": "Sent to +91 {number}",
+  "@otpSentTo": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "resendIn": "Resend in {seconds}s",
+  "@resendIn": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "resendCode": "Resend code",
+  "changeNumber": "Change number",
+  "verify": "Verify",
+  "wrongCode": "That code is not right. Please check the SMS.",
+  "codeExpired": "This code has expired. Send a new one.",
+  "accountBlocked": "This account has been blocked. Contact support if you think this is a mistake.",
+  "profileTitle": "Tell us about you",
+  "yourName": "Your name",
+  "nameHelp": "Shown on your items as first name only",
+  "nameInvalid": "Use letters, spaces and dots only (2–40)",
+  "yourCity": "Your city",
+  "chooseCity": "Choose city",
+  "continueLabel": "Continue",
+  "searchCity": "Search city",
+  "comingSoon": "Coming soon",
+  "comingSoonTitle": "RentNook is not in {city} yet",
+  "@comingSoonTitle": {
+    "placeholders": {
+      "city": {}
+    }
+  },
+  "comingSoonBody": "We are opening city by city. Tap below and we will tell you the day it opens.",
+  "notifyMe": "Notify me when it opens",
+  "waitlistDone": "Done. We will let you know.",
+  "chooseAnotherCity": "Choose another city",
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navMyItems": "My items",
+  "navSaved": "Saved",
+  "navProfile": "Profile",
+  "signInToContinue": "Sign in to continue",
+  "signInSheetBody": "You need an account to save items, contact owners or put things on rent.",
+  "signIn": "Sign in",
+  "notNow": "Not now",
+  "sessionExpired": "Your session ended. Please sign in again.",
+  "serverDown": "Our server is not responding. Please try in a minute.",
+  "searchHint": "Search cameras, drills, sofas…",
+  "categories": "Categories",
+  "requestBannerTitle": "Can't find it?",
+  "requestBannerBody": "Post a request and owners nearby will reply",
+  "sponsored": "Sponsored",
+  "latestIn": "Latest in {city}",
+  "@latestIn": {
+    "placeholders": {
+      "city": {}
+    }
+  },
+  "emptyCity": "No items yet in this city — be the first to list",
+  "putOnRent": "Put an item on rent",
+  "perDay": "/day",
+  "perWeek": "/week",
+  "perMonth": "/month",
+  "kmAway": "{km} km",
+  "@kmAway": {
+    "placeholders": {
+      "km": {}
+    }
+  },
+  "verified": "Verified",
+  "filters": "Filters",
+  "sortNearest": "Nearest",
+  "sortNewest": "Newest",
+  "sortPrice": "Lowest price",
+  "resultsCount": "{count, plural, =0{No results} =1{1 result} other{{count} results}}",
+  "@resultsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "noResultsTitle": "Nothing found for this",
+  "noResultsBody": "Try another word, or ask owners nearby.",
+  "requestThisItem": "Request this item",
+  "area": "Area",
+  "anyArea": "Any area",
+  "priceRange": "Price range (₹)",
+  "min": "Min",
+  "max": "Max",
+  "rentPeriod": "Rent per",
+  "any": "Any",
+  "day": "Day",
+  "week": "Week",
+  "month": "Month",
+  "verifiedOnly": "Verified owners only",
+  "apply": "Apply",
+  "clear": "Clear",
+  "deposit": "Deposit",
+  "condition": "Condition",
+  "condNEW": "New",
+  "condLIKE_NEW": "Like new",
+  "condGOOD": "Good",
+  "condFAIR": "Fair",
+  "memberSince": "Member since {date}",
+  "@memberSince": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "chatOnWhatsapp": "Chat on WhatsApp",
+  "noLongerAvailable": "This item is no longer available",
+  "rentedOutNow": "Rented out right now",
+  "save": "Save",
+  "saved": "Saved",
+  "share": "Share",
+  "report": "Report",
+  "safetyTitle": "Before you meet",
+  "openWhatsapp": "Open WhatsApp",
+  "whatsappMissing": "WhatsApp is not installed on this phone.",
+  "installWhatsapp": "Get WhatsApp",
+  "contactLimit": "You have contacted many owners today. Try again tomorrow.",
+  "savedEmpty": "Tap the heart on any item to save it",
+  "remove": "Remove",
+  "notAvailableShort": "Not available",
+  "reportTitle": "What is wrong?",
+  "reasonFAKE_ITEM": "Fake item or photos",
+  "reasonADVANCE_PAYMENT": "Asks for advance payment",
+  "reasonWRONG_PRICE": "Wrong price",
+  "reasonOFFENSIVE": "Offensive",
+  "reasonOTHER": "Something else",
+  "addNote": "Add a note (optional)",
+  "reportSent": "Thanks for telling us. We will check it.",
+  "alreadyReported": "You have already reported this",
+  "blockOwner": "Block this person",
+  "blocked": "Blocked. You will not see each other’s items.",
+  "addItemTitle": "Put an item on rent",
+  "editItemTitle": "Edit item",
+  "photos": "Photos",
+  "photosHelp": "1 to 8 real photos. The first one is the cover.",
+  "addPhoto": "Add photo",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "uploadFailed": "Upload failed",
+  "title": "Title",
+  "titleHint": "e.g. Canon 1500D with 18-55mm lens",
+  "category": "Category",
+  "rentPerDay": "Rent per day (₹)",
+  "rentPerWeek": "Rent per week (₹)",
+  "rentPerMonth": "Rent per month (₹)",
+  "atLeastOneRent": "Add rent per day, week or month",
+  "depositOptional": "Deposit (₹, optional)",
+  "whatsappNumber": "WhatsApp number",
+  "whatsappHelp": "Empty = your login number. Only shared when someone taps Chat.",
+  "description": "Description",
+  "descriptionHint": "What is included, its condition, pickup details",
+  "saveDraft": "Save draft",
+  "submit": "Submit",
+  "titleLength": "Title must be 8–80 characters",
+  "descLength": "Description must be 20–1,000 characters",
+  "priceRangeError": "Use whole rupees from 1 to 10,00,000",
+  "needPhoto": "Add at least one photo",
+  "contactRemoved": "We removed phone numbers or links from the text. People contact you through the WhatsApp button.",
+  "discardTitle": "Leave without saving?",
+  "discardBody": "Your changes will be lost.",
+  "leave": "Leave",
+  "stay": "Stay",
+  "itemLive": "Your item is live",
+  "statusDRAFT": "Draft",
+  "statusREVIEW": "Under review",
+  "statusLIVE": "Live",
+  "statusRENTED_OUT": "Rented out",
+  "statusHIDDEN": "Hidden",
+  "statusPENDING": "Pending",
+  "statusAPPROVED": "Approved",
+  "statusREJECTED": "Rejected",
+  "edit": "Edit",
+  "markRented": "Mark rented",
+  "markAvailable": "Mark available",
+  "pause": "Pause",
+  "delete": "Delete",
+  "boost": "Boost",
+  "goLive": "Go live",
+  "deleteItemTitle": "Delete this item?",
+  "deleteItemBody": "It will be removed from RentNook.",
+  "cancel": "Cancel",
+  "myItemsEmpty": "Put your first item on rent",
+  "noPlanTitle": "No active plan",
+  "noPlanBody": "Choose a plan so people can see your items.",
+  "choosePlan": "Choose a plan",
+  "daysLeft": "{days, plural, =1{1 day left} other{{days} days left}}",
+  "@daysLeft": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "renew": "Renew",
+  "upgrade": "Upgrade",
+  "views": "Views",
+  "whatsappChats": "WhatsApp chats",
+  "itemsLive": "Items live",
+  "overLimit": "Some items are in Draft because your plan limit is full.",
+  "plansTitle": "Plans",
+  "plansSoon": "Plans will be available soon",
+  "freePlans": "Free offers",
+  "paidPlans": "Plans",
+  "days": "{days} days",
+  "@days": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "itemsLimit": "{count, plural, =1{1 item} other{{count} items}}",
+  "@itemsLimit": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "unlimitedItems": "Unlimited items",
+  "activate": "Activate",
+  "activateFree": "Activate free plan",
+  "payViaUpi": "Pay {amount} via UPI",
+  "@payViaUpi": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "alreadyUsed": "You have already used this offer",
+  "couponHint": "Have a coupon?",
+  "applyCoupon": "Apply",
+  "couponSaved": "You save {amount}",
+  "@couponSaved": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "total": "Total",
+  "waitingApproval": "Request sent. We will activate it after a quick check.",
+  "planActive": "Plan active till {date}",
+  "@planActive": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "payTitle": "Pay with UPI",
+  "payTo": "Paying",
+  "upiId": "UPI ID",
+  "amount": "Amount",
+  "paymentFor": "For",
+  "reference": "Reference",
+  "openUpiApp": "Pay with a UPI app",
+  "scanQr": "Or scan this QR from another phone",
+  "afterPaying": "After paying, come back and enter the UTR.",
+  "iHavePaid": "I have paid, enter UTR",
+  "noUpiApp": "No UPI app found. Scan the QR or pay to the UPI ID above.",
+  "utrTitle": "Enter UTR",
+  "utrLabel": "12-digit UTR / reference number",
+  "utrHelp": "Open your UPI app → payment history → this payment. It is called UTR, UPI Ref No. or Transaction ID.",
+  "utrInvalid": "UTR must be exactly 12 digits",
+  "attachScreenshot": "Attach screenshot (optional)",
+  "screenshotAttached": "Screenshot attached",
+  "utrUsed": "This UTR has already been used",
+  "paymentStatusTitle": "Payment status",
+  "stepSubmitted": "Submitted",
+  "stepChecking": "Checking with bank statement",
+  "stepApproved": "Approved",
+  "stepRejected": "Not confirmed",
+  "checkingNote": "We check every payment by hand, usually within 4 working hours.",
+  "submitAgain": "Submit again",
+  "myPayments": "My payments",
+  "boostTitle": "Boost this item",
+  "boostBody": "Boosted items show in the Sponsored row on Home for the days you choose.",
+  "boostDays": "{days} days",
+  "@boostDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "useCredit": "Use boost credit ({count} left)",
+  "@useCredit": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "boostQueued": "Boost booked. It starts as soon as a sponsored slot frees up.",
+  "boostStarted": "Boost started",
+  "boostedTill": "Boosted till {date}",
+  "@boostedTill": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "Nothing here yet. Payment updates and requests show up here.",
+  "markAllRead": "Mark all read",
+  "pushAskTitle": "Get updates?",
+  "pushAskBody": "We will tell you when a payment is approved or someone needs your item. No spam.",
+  "allow": "Allow",
+  "editProfile": "Edit profile",
+  "startRenting": "Start renting out",
+  "myPlan": "My plan",
+  "language": "Language",
+  "helpSafety": "Help and safety",
+  "termsPrivacy": "Terms and Privacy",
+  "deleteMyAccount": "Delete my account",
+  "logout": "Log out",
+  "referFriend": "Refer a friend",
+  "requests": "My requests",
+  "getVerified": "Get ID verified",
+  "myShop": "My shop page",
+  "guestProfile": "You are browsing as a guest",
+  "deleteTitle": "Delete your account",
+  "deleteWhat": "Deleted: your profile, all your items and photos, saved items, requests, notifications, shop page and ID photo.",
+  "deleteKept": "Kept: payment records needed for tax, without your name or number.",
+  "deleteTiming": "Your items are hidden right away. Everything else is removed within 7 days.",
+  "deletePlanWarning": "Your running plan ends and is not refunded.",
+  "reasonOptional": "Reason (optional)",
+  "confirmWithOtp": "Confirm with OTP",
+  "deleteFinal": "Delete account",
+  "deleteStarted": "Deletion started. You have been logged out.",
+  "howItWorks": "How renting works",
+  "howItWorksBody": "Find an item, chat with the owner on WhatsApp, and agree dates, rent and deposit between you. RentNook does not take any commission and does not hold money.",
+  "safetyTips": "Safety tips",
+  "faqs": "Questions",
+  "contactSupport": "Contact support",
+  "grievanceOfficer": "Grievance officer",
+  "referTitle": "Refer a friend",
+  "referBody": "When a friend you invite buys their first plan, you get {days} free days.",
+  "@referBody": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "yourCode": "Your code",
+  "shareCode": "Share invite",
+  "rewardsEarned": "{count} rewards · {days} days earned",
+  "@rewardsEarned": {
+    "placeholders": {
+      "count": {},
+      "days": {}
+    }
+  },
+  "haveCode": "Got a code from a friend?",
+  "codeApplied": "Code applied",
+  "shareCardTitle": "Share this item",
+  "whatsappStatus": "WhatsApp Status",
+  "copyLink": "Copy link",
+  "more": "More",
+  "linkCopied": "Link copied",
+  "requestTitle": "Request an item",
+  "requestWhat": "What do you need?",
+  "requestWhatHint": "e.g. DSLR for a wedding on Sunday",
+  "fromDate": "From",
+  "toDate": "To",
+  "post": "Post",
+  "requestPosted": "Posted. {count} owners nearby were told.",
+  "@requestPosted": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "requestLimit": "You can post 5 requests a day.",
+  "requestsEmpty": "No requests yet",
+  "replyOnWhatsapp": "Reply on WhatsApp",
+  "nearMeAskTitle": "Sort by distance?",
+  "nearMeAskBody": "We use your approximate location (about 500 m) once to sort items. It is not saved.",
+  "useMyLocation": "Use my location",
+  "locationDenied": "Location is off, so we sorted by your city.",
+  "idTitle": "Get the verified mark",
+  "idBody": "Upload a clear photo of the front of a government ID. Only our senior team sees it, and it is deleted 30 days after the check. We never ask you to type the ID number.",
+  "uploadId": "Upload ID photo",
+  "idPending": "We are checking your ID.",
+  "idVerified": "You are verified.",
+  "idRejected": "Not verified: {reason}",
+  "@idRejected": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "shopTitle": "Shop page",
+  "shopNeedsBusiness": "Shop pages come with the Business plan.",
+  "shopName": "Shop name",
+  "timings": "Timings",
+  "about": "About",
+  "logo": "Logo",
+  "shopSaved": "Shop page saved",
+  "english": "English",
+  "hindi": "हिंदी",
+  "somethingWrong": "Something went wrong. Please try again.",
+  "galleryTitle": "Component gallery"
+}

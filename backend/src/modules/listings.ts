@@ -564,6 +564,14 @@ export default async function listingRoutes(app: FastifyInstance, deps: Deps) {
     return { items: await Promise.all(rows.map((l) => serializeCard(deps.storage, l))) };
   });
 
+  // App Links land on /i/<shortId>; the app swaps it for the listing id.
+  app.get('/listings/by-short/:shortId', { preHandler: searchLimit }, async (req) => {
+    const { shortId } = parse(z.object({ shortId: z.string().regex(/^[A-Z0-9]{10}$/) }).strict(), req.params);
+    const l = await deps.db.listing.findUnique({ where: { shortId }, select: { id: true, status: true, city: { select: { isOpen: true } } } });
+    if (!l || l.status !== 'LIVE' || !l.city.isOpen) throw notFound('This item is no longer available', 'LISTING_GONE');
+    return { id: l.id };
+  });
+
   app.get('/listings/:id', { preHandler: searchLimit }, async (req) => {
     const { id } = parse(z.object({ id: z.uuid() }).strict(), req.params);
     const q = parse(z.object({ lat: z.coerce.number().optional(), lng: z.coerce.number().optional() }).strict(), req.query);
