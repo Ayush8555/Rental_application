@@ -72,7 +72,7 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: subosito/flutter-action@v2.21.0
+      - uses: subosito/flutter-action@v2.23.0
         with:
           flutter-version: 3.50.1
           channel: stable
