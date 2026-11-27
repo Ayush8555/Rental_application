@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM node:22.23.5-bookworm-slim AS build
+FROM node:26.13.0-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 COPY prisma ./prisma
@@ -9,7 +9,7 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build && cp -r src/public-pages/static dist/public-pages/static && npm prune --omit=dev --ignore-scripts
 
-FROM node:22.23.5-bookworm-slim
+FROM node:26.13.0-bookworm-slim
 ENV NODE_ENV=production TZ=Asia/Kolkata
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-core tini && rm -rf /var/lib/apt/lists/*
