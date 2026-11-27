@@ -1,0 +1,19 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Throwaway values used only by tests and examples"
+paths = [
+  '''backend/test/setup-env\.ts''',
+  '''\.env\.example$''',
+  '''package-lock\.json$''',
+  '''pubspec\.lock$''',
+  '''backend/test/.*\.test\.ts$''',
+  # list of well-known weak passwords we refuse
+  '''backend/src/modules/admin/passwords\.ts$''',
+]
+regexes = [
+  '''change-me''',
+  '''ci-only-password''',
+  '''localdev''',
+]

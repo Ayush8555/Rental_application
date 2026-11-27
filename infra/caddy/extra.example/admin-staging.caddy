@@ -1,0 +1,4 @@
+# Staging admin: password prompt in front of the panel's own login.
+basic_auth {
+	team $2a$14$replace.with.output.of.caddy.hash-password
+}

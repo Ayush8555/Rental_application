@@ -1,0 +1,4 @@
+# Staging API: only team IPs (the app's own Authorization header rules out
+# basic auth here).
+@not_team not remote_ip 203.0.113.10/32 198.51.100.0/24
+respond @not_team 403
