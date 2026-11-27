@@ -15,6 +15,9 @@ concurrency:
 
 jobs:
   deploy:
+    # Turn on once the staging server and its secrets exist:
+    # Settings -> Secrets and variables -> Actions -> Variables -> STAGING_ENABLED = true
+    if: ${{ vars.STAGING_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
     environment: staging
     steps:

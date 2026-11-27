@@ -14,19 +14,22 @@ export function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
+const TAG_LEN = 16;
+
 // AES-256-GCM from node's crypto. Used only for TOTP secrets at rest.
 export function encrypt(keyB64: string, plain: string): string {
   const key = Buffer.from(keyB64, 'base64');
   const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: TAG_LEN });
   const data = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
   return [iv, cipher.getAuthTag(), data].map((b) => b.toString('base64url')).join('.');
 }
 
 export function decrypt(keyB64: string, blob: string): string {
   const [iv, tag, data] = blob.split('.').map((p) => Buffer.from(p, 'base64url'));
-  if (!iv || !tag || !data) throw new Error('bad ciphertext');
-  const decipher = createDecipheriv('aes-256-gcm', Buffer.from(keyB64, 'base64'), iv);
+  // A short tag would make forgery much easier, so only the full 16 bytes are accepted.
+  if (!iv || !tag || !data || iv.length !== 12 || tag.length !== TAG_LEN) throw new Error('bad ciphertext');
+  const decipher = createDecipheriv('aes-256-gcm', Buffer.from(keyB64, 'base64'), iv, { authTagLength: TAG_LEN });
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
 }

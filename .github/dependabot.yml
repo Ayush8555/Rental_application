@@ -1,20 +1,35 @@
 # Monthly, one PR per ecosystem (section 3: upgrade once a month, separately).
+# Major versions are left out: they change APIs and are upgraded by hand in
+# their own change, after reading the release notes.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /backend
     schedule: { interval: monthly }
     groups: { backend: { patterns: ["*"] } }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /admin
     schedule: { interval: monthly }
     groups: { admin: { patterns: ["*"] } }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: pub
     directory: /app
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
   - package-ecosystem: docker
     directory: /backend
     schedule: { interval: monthly }
+    ignore:
+      # Node stays on the version CI and the servers run; bump all three together.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]

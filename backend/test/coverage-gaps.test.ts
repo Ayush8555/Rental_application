@@ -8,6 +8,7 @@ import { maskPhone, normalisePhone } from '../src/lib/phone.ts';
 import { cleanListingText, scamHits } from '../src/lib/text-filter.ts';
 import { addDays } from '../src/lib/time.ts';
 import { render } from '../src/services/notify.ts';
+import { decrypt, encrypt } from '../src/lib/crypto.ts';
 import { adminLogin, closeCtx, giveActivePlan, login, loginWithProfile, makeListing, makePlan, makeUserDirect, resetDb, seedBasics, setupCtx, stepUp, type AdminSessionInfo, type Ctx } from './helpers.ts';
 
 let ctx: Ctx;
@@ -44,6 +45,15 @@ describe('small helpers', () => {
     }
     expect(cleanListingText('Canon 1500D, 18-55mm lens, 2019 model').removed).toBe(false);
     expect(scamHits('Pay advance first via gift card')).toEqual(expect.arrayContaining(['pay advance', 'gift card']));
+  });
+
+  it('TOTP secret encryption rejects truncated auth tags', () => {
+    const key = Buffer.alloc(32, 3).toString('base64');
+    const blob = encrypt(key, 'JBSWY3DPEHPK3PXP');
+    expect(decrypt(key, blob)).toBe('JBSWY3DPEHPK3PXP');
+    const [iv, tag, data] = blob.split('.');
+    const short = [iv, Buffer.from(tag!, 'base64url').subarray(0, 4).toString('base64url'), data].join('.');
+    expect(() => decrypt(key, short)).toThrow();
   });
 
   it('notification templates exist in English and Hindi', () => {
